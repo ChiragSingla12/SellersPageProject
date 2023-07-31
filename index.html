@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller's Admin Page </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <form onSubmit="saveToLocalStorage(event)">
+            <label>Selling Price</label>
+            <input type="number" name="selling" id="sellingPrice"></input>
+            <label>Product Name</label>
+            <input type="text" name="product" id="productName"></input>
+            <button class="btn btn-primary"> Add Product </button>
+        </form>
+    </div>
+
+    <hr>
+    <h1>Products</h1>
+    <ul id="listOfProducts"></ul>
+
+    <h5 id="totalWorth">Total Value Worth Of Products : </h5>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+
+    <script>
+        function saveToLocalStorage(event) {
+            event.preventDefault();
+            const expenseAmount = event.target.selling.value;
+            const description = event.target.product.value;
+
+            const obj = {
+                expenseAmount,
+                description
+            }
+
+            localStorage.setItem(obj.description, JSON.stringify(obj));
+
+            const worth = document.getElementById('totalWorth');
+            worth.value = 
+
+
+
+            axios.post("https://crudcrud.com/api/f71e8866cfa34a8693e498a67a693c23/products", obj)
+                .then((response) => {
+                    showProductOnScreen(response.data);
+                    // console.log(response.data);
+                    calculateTotalValue();
+                })
+                .catch((err) => {
+                    document.body.innerHTML = document.body.innerHTML + "<h4> Something Went Wrong <h4>";
+                    console.log(err);
+                });
+
+            }
+            
+
+        window.addEventListener("DOMContentLoaded", () => {
+            axios.get("https://crudcrud.com/api/f71e8866cfa34a8693e498a67a693c23/products")
+                .then((response) => {
+                    console.log(response.data);
+                    for (var i = 0; i < response.data.length; i++) {
+                        console.log(showProductOnScreen(response.data[i]));
+                    }
+                    calculateTotalValue();
+                })
+                .catch((err) => {
+                    console.log(err);
+                })
+        })
+
+        function showProductOnScreen(user) {
+
+            //user has id , name and email as a object so we can use it.
+
+            // document.getElementById('usernameInputTag').value = '';
+            // document.getElementById('emailInputTag').value = '';
+            // document.getElementById('phoneNumberInputTag').value = '';
+
+            const parentElem = document.getElementById('listOfProducts');
+            const childHTML = `<li id=${user._id}> ${user.expenseAmount} - ${user.description}
+                        <button onclick= deleteUser('${user._id}')> Delete Product </button> 
+                    </li>`;
+            parentElem.innerHTML = parentElem.innerHTML + childHTML;
+        }
+
+
+        function deleteUser(userId) {
+
+            axios.delete(`https://crudcrud.com/api/f71e8866cfa34a8693e498a67a693c23/products/${userId}`)
+                .then((response) => {
+                    removeUserFromScreen(userId);
+                    calculateTotalValue();
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        }
+
+        function removeUserFromScreen(userId) {
+            const parentElem = document.getElementById('listOfProducts');
+            const parentNodeToBeDeleted = document.getElementById(userId);
+            if (parentNodeToBeDeleted) {
+                parentElem.removeChild(parentNodeToBeDeleted);
+            }
+        }
+
+        function calculateTotalValue() {
+            const productsList = document.getElementById('listOfProducts').children;
+            let totalValue = 0;
+            for (let i = 0; i < productsList.length; i++) {
+                const expenseAmount = parseFloat(productsList[i].textContent.split(' - ')[0]);
+                totalValue += expenseAmount;
+            }
+            const worth = document.getElementById('totalWorth');
+            worth.textContent = "Total Value Worth Of Products: " + totalValue.toFixed(2);
+        }
+
+    </script>
+</body>
+
+
+</html>
